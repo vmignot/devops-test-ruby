@@ -1,0 +1,33 @@
+---
+- name: Install dependencies
+  yum:
+    name: "{{ item }}"
+  with_items:
+    - git
+    - mysql
+    - mysql-devel
+    - nodejs
+
+- name: Create user
+  user:
+    name: app
+
+- name: Get app code
+  git:
+    repo: https://github.com/vmignot/devops-test-ruby.git
+    dest: /var/app
+
+- name: Change app owner
+  file:
+    state: directory
+    owner: app
+    group: app
+    path: /var/app
+    recurse: true
+
+- name: Bundle install
+  bundler:
+    state: present
+    chdir: /var/app/
+    executable: /usr/local/rvm/gems/ruby-2.3.0/wrappers/bundle
+

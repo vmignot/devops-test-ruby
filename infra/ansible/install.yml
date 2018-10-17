@@ -1,0 +1,14 @@
+---
+- hosts: aircall
+  become: true
+  remote_user: root
+  tasks:
+    - import_role:
+        name: rvm
+      tags:
+        - rvm
+
+    - import_role:
+        name: install-app
+      tags:
+        - install-app

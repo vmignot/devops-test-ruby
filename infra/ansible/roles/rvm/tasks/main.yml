@@ -1,0 +1,60 @@
+---
+# From https://github.com/indix/ansible-ruby/blob/master/tasks/main.yml
+- name: Install dependencies
+  yum:
+    name: "{{ item }}"
+  with_items:
+    - gcc-c++
+    - patch
+    - readline
+    - readline-devel
+    - zlib
+    - zlib-devel
+    - libyaml-devel
+    - libffi-devel
+    - openssl-devel
+    - make
+    - bzip2
+    - autoconf
+    - automake
+    - libtool
+    - bison
+    - sqlite-devel
+
+- name: Receiving key
+  shell: "curl -sSL https://rvm.io/mpapis.asc | gpg --import -"
+  register: rvm_key_import
+  changed_when: "'unchanged: 1' not in rvm_key_import.stderr"
+
+- name: downloading RVM installer
+  get_url:
+    url: "https://get.rvm.io"
+    dest: "~/rvm-installer.sh"
+    mode: 0755
+
+- name: Installing RVM
+  command: "~/rvm-installer.sh --path /usr/local/rvm stable"
+  register: rvm_install
+  changed_when: "'Upgrading' not in rvm_install.stdout"
+
+- name: Installing Ruby
+  command: "/usr/local/rvm/bin/rvm install {{ rvm_ruby_version }}"
+  register: rvm_install_ruby
+  changed_when: "'Already installed' not in rvm_install_ruby.stderr"
+
+- name: Setting default Ruby version
+  shell: "source /etc/profile.d/rvm.sh && rvm use {{ rvm_ruby_version }} --default executable=/bin/bash"
+  register: rvm_select_ruby_version_root
+  ignore_errors: true
+  changed_when: false
+
+- name: Create symlinks to ruby and gem
+  file:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    state: link
+  with_items:
+    - { src: '/usr/local/rvm/rubies/ruby-{{ rvm_ruby_version }}/bin/ruby', dest: '/usr/local/bin/ruby' }
+    - { src: '/usr/local/rvm/rubies/ruby-{{ rvm_ruby_version }}/bin/gem', dest: '/usr/local/bin/gem' }

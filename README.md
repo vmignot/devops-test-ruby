@@ -56,10 +56,10 @@ App dependencies:
 - RACK_ENV=production RAILS_ENV=production rake assets:precompile
 
 Database creation:
-- RACK_ENV=production RAILS_ENV=production rake db:create
+- RACK_ENV=${ENV} RAILS_ENV=${ENV} rake db:create
 
 Database initialization:
-- RACK_ENV=production RAILS_ENV=production rake db:migrate
+- RACK_ENV=${ENV} RAILS_ENV=${ENV} rake db:migrate
 
 Web server initialization:
-- RACK_ENV=production RAILS_ENV=production bundle exec puma
+- RACK_ENV=${ENV} RAILS_ENV=${ENV} bundle exec puma

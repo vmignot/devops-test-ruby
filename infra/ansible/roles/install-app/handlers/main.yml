@@ -2,7 +2,7 @@
 - name: Restart server
   become: true
   become_user: app
-  shell: /usr/local/rvm/gems/ruby-2.3.0/wrappers/bundle exec pumactl -P /tmp/puma.pid restart
+  shell: /usr/local/rvm/gems/ruby-2.3.0/wrappers/bundle exec pumactl -F config/puma/{{ app_environment_name }}.rb restart
   environment:
     RACK_ENV: "{{ app_environment_name }}"
     RAILS_ENV: "{{ app_environment_name }}"

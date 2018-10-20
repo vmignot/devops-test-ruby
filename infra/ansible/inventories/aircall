@@ -1,7 +1,10 @@
 [app]
 51.15.247.24
 
-[mysql]
+[db]
+51.15.247.24
+
+[reverse-proxy]
 51.15.247.24
 
 [env_prod]

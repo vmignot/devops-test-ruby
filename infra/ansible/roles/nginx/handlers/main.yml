@@ -1,0 +1,14 @@
+---
+- name: Reload nginx
+  service:
+    name: nginx
+    state: reloaded
+
+- name: update-ca-trust
+  command: update-ca-trust
+
+- name: Reload sysctl
+  command: sysctl -p
+
+- name: Reload firewalld
+  command: firewall-cmd --reload

@@ -1,5 +1,5 @@
 ---
-- hosts: mysql
+- hosts: db
   become: true
   remote_user: root
   tasks:
@@ -22,3 +22,22 @@
         name: install-app
       tags:
         - install-app
+
+- hosts: reverse-proxy
+  become: true
+  remote_user: root
+  tasks:
+    - import_role:
+        name: firewalld
+      tags:
+        - firewalld
+
+    - import_role:
+        name: nginx
+      tags:
+        - nginx
+
+    - import_role:
+        name: nginx-vhost
+      tags:
+        - nginx-vhost

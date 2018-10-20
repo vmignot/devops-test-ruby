@@ -1,0 +1,8 @@
+---
+- name: Reload firewalld
+  command: firewall-cmd --reload
+
+- name: Reload nginx
+  service:
+    name: nginx
+    state: reloaded

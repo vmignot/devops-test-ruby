@@ -1,0 +1,62 @@
+---
+- name: Increase max number of open files
+  lineinfile:
+    dest: /etc/security/limits.conf
+    regexp: "^#?{{ item.key }}"
+    line: "{{ item.key }} {{ item.val }}"
+    state: present
+  with_items:
+    - {key: "nginx  soft  nofile", val: 65536}
+    - {key: "nginx  hard  nofile", val: 65536}
+  notify: Reload sysctl
+
+- name: Add rpm key
+  rpm_key:
+    key: http://nginx.org/keys/nginx_signing.key
+
+- name: Copy repo
+  copy:
+    src: nginx.repo
+    dest: /etc/yum.repos.d/nginx.repo
+
+- name: Install nginx
+  package:
+    name: nginx
+    state: present
+
+- name: Remove default conf
+  file:
+    name: /etc/nginx/conf.d/default.conf
+    state: absent
+
+- name: Create /etc/nginx/ssl folder
+  file:
+    state: directory
+    path: /etc/nginx/ssl
+
+- name: Copy dhparam.pem
+  copy:
+    src: dhparam.pem
+    dest: /etc/nginx/ssl/dhparam.pem
+    mode: 0644
+
+- name: Copy letsencrypt root CA
+  copy:
+    src: letsencrypt_root_ca.pem
+    dest: /etc/pki/ca-trust/source/anchors/letsencrypt_root_ca.pem
+  notify: update-ca-trust
+
+- name: flush_handlers
+  meta: flush_handlers
+
+- name: Replace conf
+  copy:
+    src: nginx.conf
+    dest: /etc/nginx/nginx.conf
+  notify: Reload nginx
+
+- name: Ensure nginx is started and enabled
+  service:
+    name: nginx
+    state: started
+    enabled: "True"

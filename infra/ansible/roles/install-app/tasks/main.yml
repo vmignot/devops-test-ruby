@@ -58,6 +58,13 @@
     owner: app
   notify: Restart server
 
+- name: Copy puma conf
+  template:
+    src: puma-conf.rb
+    dest: /var/app/config/puma/{{ app_environment_name }}.rb
+    owner: app
+  notify: Restart server
+
 - name: Create DB
   become: true
   become_user: app
@@ -80,13 +87,10 @@
   args:
     chdir: /var/app/
 
-- name: flush_handlers
-  meta: flush_handlers
-
 - name: Check server state
   become: true
   become_user: app
-  shell: /usr/local/rvm/gems/ruby-2.3.0/wrappers/bundle exec pumactl -P /tmp/puma.pid status
+  shell: /usr/local/rvm/gems/ruby-2.3.0/wrappers/bundle exec pumactl -F config/puma/{{ app_environment_name }}.rb status
   environment:
     RACK_ENV: "{{ app_environment_name }}"
     RAILS_ENV: "{{ app_environment_name }}"
@@ -99,7 +103,7 @@
 - name: Start server
   become: true
   become_user: app
-  shell: /usr/local/rvm/gems/ruby-2.3.0/wrappers/bundle exec puma --pidfile /tmp/puma.pid -d
+  shell: /usr/local/rvm/gems/ruby-2.3.0/wrappers/bundle exec puma -F config/puma/{{ app_environment_name }}.rb
   environment:
     RACK_ENV: "{{ app_environment_name }}"
     RAILS_ENV: "{{ app_environment_name }}"

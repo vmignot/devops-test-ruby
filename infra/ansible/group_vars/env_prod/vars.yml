@@ -1,0 +1,8 @@
+---
+app_environment_name: production
+app_database_password: "{{ vault_app_database_password }}"
+app_secret_key_base: "{{ vault_app_secret_key_base }}"
+app_secret_token: "{{ vault_app_secret_token }}"
+
+mysql_database_name: devops_production
+mysql_database_password: "{{ app_database_password }}"

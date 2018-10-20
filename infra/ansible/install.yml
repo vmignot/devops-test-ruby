@@ -1,5 +1,15 @@
 ---
-- hosts: aircall
+- hosts: mysql
+  become: true
+  remote_user: root
+  tasks:
+    - import_role:
+        name: mysql
+      tags:
+        - mysql
+
+
+- hosts: app
   become: true
   remote_user: root
   tasks:

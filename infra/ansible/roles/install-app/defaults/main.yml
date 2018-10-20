@@ -1,0 +1,7 @@
+---
+app_environment_name: development
+app_database_host: 127.0.0.1
+app_database_user: app
+# MANDATORY
+#app_database_password: ""
+#app_secret_key_base: ""

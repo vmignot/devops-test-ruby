@@ -1,0 +1,30 @@
+---
+- name: Install dependencies
+  yum:
+    name: "{{ item }}"
+  loop:
+    - http://repo.mysql.com/mysql-community-release-el7-5.noarch.rpm
+    - python2-PyMySQL
+
+- name: Install mysql-community-server
+  yum:
+    update_cache: true
+    name: "mysql-community-server-{{ mysql_version }}"
+
+- name: Ensure mysql is started and enabled
+  service:
+    name: mysqld
+    state: started
+    enabled: true
+
+- name: Create database
+  mysql_db:
+    name: "{{ mysql_database_name }}"
+    state: present
+
+- name: Create database user
+  mysql_user:
+    name: app
+    password: "{{ mysql_database_password }}"
+    priv: "{{ mysql_database_name }}.*:ALL"
+    state: present

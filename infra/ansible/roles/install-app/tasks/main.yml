@@ -2,7 +2,7 @@
 - name: Install dependencies
   yum:
     name: "{{ item }}"
-  with_items:
+  loop:
     - git
     - mysql
     - mysql-devel
@@ -16,6 +16,7 @@
   git:
     repo: https://github.com/vmignot/devops-test-ruby.git
     dest: /var/app
+    force: true
 
 - name: Change app owner
   file:
@@ -26,8 +27,82 @@
     recurse: true
 
 - name: Bundle install
+  become: true
+  become_user: app
   bundler:
     state: present
     chdir: /var/app/
     executable: /usr/local/rvm/gems/ruby-2.3.0/wrappers/bundle
 
+- name: Precompile assets
+  become: true
+  become_user: app
+  shell: /usr/local/rvm/gems/ruby-2.3.0/wrappers/rake assets:precompile
+  environment:
+    RACK_ENV: "{{ app_environment_name }}"
+    RAILS_ENV: "{{ app_environment_name }}"
+  args:
+    chdir: /var/app/
+
+- name: Copy DB config
+  template:
+    src: database.yml.j2
+    dest: /var/app/config/database.yml
+    owner: app
+  notify: Restart server
+
+- name: Copy secrets.yml
+  template:
+    src: secrets.yml.j2
+    dest: /var/app/config/secrets.yml
+    owner: app
+  notify: Restart server
+
+- name: Create DB
+  become: true
+  become_user: app
+  shell: /usr/local/rvm/gems/ruby-2.3.0/wrappers/rake db:create
+  environment:
+    RACK_ENV: "{{ app_environment_name }}"
+    RAILS_ENV: "{{ app_environment_name }}"
+  args:
+    chdir: /var/app/
+  register: app_create_db
+  changed_when: "'already exists' not in app_create_db.stderr"
+
+- name: Migrate DB
+  become: true
+  become_user: app
+  shell: /usr/local/rvm/gems/ruby-2.3.0/wrappers/rake db:migrate
+  environment:
+    RACK_ENV: "{{ app_environment_name }}"
+    RAILS_ENV: "{{ app_environment_name }}"
+  args:
+    chdir: /var/app/
+
+- name: flush_handlers
+  meta: flush_handlers
+
+- name: Check server state
+  become: true
+  become_user: app
+  shell: /usr/local/rvm/gems/ruby-2.3.0/wrappers/bundle exec pumactl -P /tmp/puma.pid status
+  environment:
+    RACK_ENV: "{{ app_environment_name }}"
+    RAILS_ENV: "{{ app_environment_name }}"
+  register: app_check_server
+  args:
+    chdir: /var/app/
+  failed_when: false
+  changed_when: false
+
+- name: Start server
+  become: true
+  become_user: app
+  shell: /usr/local/rvm/gems/ruby-2.3.0/wrappers/bundle exec puma --pidfile /tmp/puma.pid -d
+  environment:
+    RACK_ENV: "{{ app_environment_name }}"
+    RAILS_ENV: "{{ app_environment_name }}"
+  args:
+    chdir: /var/app/
+  when: app_check_server.rc != 0

@@ -3,7 +3,7 @@
 - name: Install dependencies
   yum:
     name: "{{ item }}"
-  with_items:
+  loop:
     - gcc-c++
     - patch
     - readline
@@ -55,6 +55,6 @@
     owner: root
     group: root
     state: link
-  with_items:
+  loop:
     - { src: '/usr/local/rvm/rubies/ruby-{{ rvm_ruby_version }}/bin/ruby', dest: '/usr/local/bin/ruby' }
     - { src: '/usr/local/rvm/rubies/ruby-{{ rvm_ruby_version }}/bin/gem', dest: '/usr/local/bin/gem' }

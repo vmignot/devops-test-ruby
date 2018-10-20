@@ -1,0 +1,11 @@
+---
+- name: Restart server
+  become: true
+  become_user: app
+  shell: /usr/local/rvm/gems/ruby-2.3.0/wrappers/bundle exec pumactl -P /tmp/puma.pid restart
+  environment:
+    RACK_ENV: "{{ app_environment_name }}"
+    RAILS_ENV: "{{ app_environment_name }}"
+    SECRET_KEY_BASE: "{{ app_secret_key_base }}"
+  args:
+    chdir: /var/app/
